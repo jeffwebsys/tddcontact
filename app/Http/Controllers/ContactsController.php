@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Resources\Contact as ContactResource;
+use Symfony\Component\HttpFoundation\Response;
 use App\Contact;
 
 
@@ -12,48 +14,62 @@ class ContactsController extends Controller
 
     public function index(){
 
-    return request()->user()->contacts;
+        $this->authorize('viewAny', Contact::class);
+
+
+    return ContactResource::collection(request()->user()->contacts);
 
     }
 
 
     public function store(){
 
+        $this->authorize('create', Contact::class);
         
 
-        request()->user()->contacts()->create($this->validateData());
+        $contact = request()->user()->contacts()->create($this->validateData());
+
+       return (new Contactresource($contact))
+       ->response()
+       ->setStatusCode(Response::HTTP_CREATED);
     }
     public function show(Contact $contact){
 
-        if(request()->user()->isNot($contact->user)){
+        // if(request()->user()->isNot($contact->user)){
 
-            return response([], 403);
-        }
+        //     return response([], 403);
+        // }
+        $this->authorize('view', $contact);
 
-        return $contact;
+        return new ContactResource($contact);
 
 }
 public function update(Contact $contact){
     
 
-    if(request()->user()->isNot($contact->user)){
+    $this->authorize('update', $contact);
 
-        return response([], 403);
-    }
 
     $contact->update($this->validateData());
+    return (new Contactresource($contact))
+       ->response()
+       ->setStatusCode(Response::HTTP_OK);
+    }
 
 
-}
+
 
 public function destroy(Contact $contact){
 
-    if(request()->user()->isNot($contact->user)){
+    // if(request()->user()->isNot($contact->user)){
 
-        return response([], 403);
-    }
+    //     return response([], 403);
+    // }
+    $this->authorize('delete', $contact);
+
 
     $contact->delete();
+    return response([], Response::HTTP_NO_CONTENT);
 
 }
 private function validateData(){

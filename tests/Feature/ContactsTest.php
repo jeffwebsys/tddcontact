@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 use App\User;
 use App\Contact;
@@ -23,7 +24,7 @@ $this->user = factory(User::class)->create();
 /** @test */
 public function a_list_of_contacts_can_be_fetched_for_the_authenticated_user(){
 
-    $this->withoutExceptionHandling();
+    // $this->withoutExceptionHandling();
 
     $user = factory(User::class)->create();
     $anotherUser = factory(User::class)->create();
@@ -32,8 +33,21 @@ public function a_list_of_contacts_can_be_fetched_for_the_authenticated_user(){
     $anotherContact = factory(Contact::class)->create(['user_id' => $anotherUser->id]);
 
     $response = $this->get('/api/contacts?api_token=' . $user->api_token);
+    // dd(json_decode($response->getContent()));
 
-    $response->assertJsonCount(1)->assertJson([['id' => $contact->id]]);
+    $response->assertJsonCount(1)->assertJson([
+
+        'data' => [
+
+            [
+                'data' => [ 
+        
+                    'contact_id' => $contact->id
+                ]
+        
+            ]
+        ]
+    ]);
 
 
 }
@@ -57,14 +71,28 @@ public function an_authenticated_user_can_add_a_contact()
 $user = factory(User::class)->create();
 
 
-$this->post('/api/contacts', $this->data());
+$response = $this->post('/api/contacts', $this->data());
 
 $contact = Contact::first();
+// dd(json_decode($response->getContent()));
 
 $this->assertEquals('Test Name', $contact->name);
 $this->assertEquals('jeff@gmail.com', $contact->email);
 $this->assertInstanceOf(Carbon::class, Contact::first()->birthday);
 $this->assertEquals('Oracle', $contact->company);
+$response->assertStatus(Response::HTTP_CREATED);
+$response->assertJson([
+
+'data' => [
+
+    'contact_id' => $contact->id,
+],
+
+'links' => [
+    'self' => url('/contacts/' . $contact->id),
+]
+
+]);
 
 
 
@@ -118,12 +146,18 @@ public function a_contact_can_be_retrieved(){
 
     $contact = factory(Contact::class)->create(['user_id' => $this->user->id]);
   $response = $this->get('/api/contacts/'. $contact->id . '?api_token=' . $this->user->api_token);
+  
   $response->assertJson([
 
+    'data' => [
+    'contact_id' => $contact->id,
     'name' => $contact->name,
     'email' => $contact->email,
-    'birthday' => $contact->birthday->format('Y-m-d\TH:i:s.\0\0\0\0\0\0\Z'),
+    'birthday' => $contact->birthday->format('m/d/Y'),
     'company' => $contact->company,
+    'last_updated' => $contact->updated_at->diffForHumans(),
+
+    ]
     
     ]);
 }
@@ -154,6 +188,20 @@ $this->assertEquals('jeff@gmail.com', $contact->email);
 $this->assertEquals('09/24/1989', $contact->birthday->format('m/d/Y'));
 $this->assertEquals('Oracle', $contact->company);
 
+$response->assertStatus(Response::HTTP_OK);
+$response->assertJson([
+
+    'data' => [
+
+        'contact_id' => $contact->id,
+    ],
+ 
+    'links' => [
+        'self' => $contact->path(),
+    ]
+]);
+
+
 
 
 }
@@ -178,6 +226,7 @@ public function a_contact_can_be_deleted(){
 
     $response = $this->delete('/api/contacts/'.$contact->id, ['api_token' => $this->user->api_token]);
     $this->assertCount(0, Contact::all());
+    $response->assertStatus(Response::HTTP_NO_CONTENT);
 }
 /** @test */
 public function only_the_owner_can_delete_the_contact(){
