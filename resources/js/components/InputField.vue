@@ -14,7 +14,7 @@ export default {
     //props form values for the ContactsCreate
     props: [
 
-        'name', 'label','placeholder' ,'errors'
+        'name', 'label','placeholder' ,'errors', 'data'
     ],
 
     data: function (){
@@ -63,6 +63,17 @@ export default {
                 'error-field': this.hasError
             }
         }
+    },
+
+    // Updating and fetch the contact
+     watch: {
+
+        data: function (val) {
+
+            this.value = val;
+
+        }
+
     }
     
 }

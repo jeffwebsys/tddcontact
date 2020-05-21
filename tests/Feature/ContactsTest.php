@@ -89,7 +89,7 @@ $response->assertJson([
 ],
 
 'links' => [
-    'self' => url('/contacts/' . $contact->id),
+    'self' => '/contacts/' . $contact->id,
 ]
 
 ]);
