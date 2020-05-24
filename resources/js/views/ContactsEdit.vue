@@ -29,6 +29,8 @@
 // import InputField.vue 
 // and add as component
 import InputField from '../components/InputField';
+
+
 export default {
     name: "ContactsEdit",
 
@@ -48,7 +50,7 @@ export default {
         if(error.response.status === 404){
             this.$router.push('/contacts');
             //alert
-            alert('Contact Not Found')
+             this.$swal('Error!','Contact Not Found','error','top-end');
         }
 
         });
@@ -72,11 +74,13 @@ export default {
     },
 
     methods: {
-        //laravel api call through axios and laravel
+        //laravel api call PATCH through axios and laravel
         submitForm: function (){
             axios.patch('/api/contacts/'+ this.$route.params.id, this.form)
             .then(response =>{
+                 this.$swal('Success!','Contact Updated','success','top-end');
                 this.$router.push(response.data.links.self);
+               
 
             })
             .catch(errors => {

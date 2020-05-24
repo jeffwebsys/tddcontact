@@ -13,8 +13,7 @@
     <!-- buttons -->
          <div class="flex justify-end">
              <button class="py-2 px-4 rounded text-red-700 border mr-5 hover:border-red-700">Cancel</button>
-             <button class="bg-blue-500 py-2 px-4 text-white rounded hover:bg-blue-400">Add New Contact</button>
-
+            <loadbtn />
          </div>
     </form>
 </div>
@@ -25,11 +24,14 @@
 // import InputField.vue 
 // and add as component
 import InputField from '../components/InputField';
+import loadbtn from '../components/loadbtn';
+
+
 export default {
     name: "ContactsCreate",
 
     components: {
-        InputField
+        InputField,loadbtn
     },
 
     data: function (){
@@ -48,16 +50,18 @@ export default {
     },
 
     methods: {
-        //laravel api call through axios and laravel
+        //laravel api call through axios and laravel POST
         submitForm: function (){
             axios.post('/api/contacts', this.form)
             .then(response =>{
                 this.$router.push(response.data.links.self);
+                this.$swal('Success!','Contact Added','success','top-end');
 
             })
             .catch(errors => {
-                //if error
+                //if has error
                 this.errors =  errors.response.data.errors;
+                this.$swal('Check inputs!','Failed','error','top-end');
             });
         }
     }

@@ -4,10 +4,13 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Laravel\Scout\Searchable;
 
 class Contact extends Model
 {
     //
+    use Searchable;
+
     protected $guarded = [];
 
     protected $dates = ['birthday'];
@@ -15,6 +18,12 @@ class Contact extends Model
     public function path(){
 
         return '/contacts/' . $this->id;
+    }
+
+    public function scopeBirthdays($query){
+
+        return $query->whereMonth('birthday', now()->format('m'));
+
     }
 
 
@@ -29,4 +38,6 @@ class Contact extends Model
 
         return $this->belongsTo(User::class);
     }
+
+     
 }

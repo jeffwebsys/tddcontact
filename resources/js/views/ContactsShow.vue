@@ -69,7 +69,7 @@ export default {
         //if page not found let's throw some view
         if(error.response.status === 404){
             this.$router.push('/contacts');
-            alert('Contact Not Found')
+            this.$swal('Error!','Contact Not Found','error','center');
         }
 
         });
@@ -93,6 +93,7 @@ export default {
             axios.delete('/api/contacts/' + this.$route.params.id).
             then(response => {
                 this.$router.push('/contacts');
+                this.$swal('Success!','Contact Deleted','info');
             })
             .catch(error => {
                 alert('Internal Error. Unable To Delete Contact')
